@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专属生日祝福盛宴</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 页面基础样式 - 支持多阶段切换 */
+        .page {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+            padding: 20px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .page.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        /* 1. 封面页 - 增强视觉冲击 */
+        #cover-page {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            z-index: 10;
+        }
+
+        .decor-group {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .floating-decor {
+            position: absolute;
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            opacity: 0.6;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .floating-decor:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
+        .floating-decor:nth-child(2) { top: 15%; right: 15%; animation-delay: 1s; }
+        .floating-decor:nth-child(3) { bottom: 20%; left: 20%; animation-delay: 2s; }
+        .floating-decor:nth-child(4) { bottom: 10%; right: 10%; animation-delay: 3s; }
+        .floating-decor:nth-child(5) { top: 40%; left: 5%; animation-delay: 4s; }
+        .floating-decor:nth-child(6) { top: 60%; right: 8%; animation-delay: 5s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-25px) rotate(5deg); }
+        }
+
+        .gift-container {
+            position: relative;
+            margin-bottom: 40px;
+            z-index: 2;
+        }
+
+        .gift-box {
+            width: 220px;
+            height: 220px;
+            background: #ff6b6b;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 15px 30px rgba(255, 107, 107, 0.3);
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+        }
+
+        .gift-box:hover {
+            transform: scale(1.08) rotate(2deg);
+            box-shadow: 0 20px 40px rgba(255, 107, 107, 0.4);
+        }
+
+        .gift-lid {
+            width: 240px;
+            height: 45px;
+            background: #ff5252;
+            border-radius: 12px 12px 0 0;
+            position: absolute;
+            top: -25px;
+            left: -10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .gift-ribbon {
+            width: 32px;
+            height: 100%;
+            background: #4cd3c2;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .gift-ribbon::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 32px;
+            background: #4cd3c2;
+            top: 50%;
+            transform: translateY(-50%) rotate(90deg);
+            border-radius: 4px;
+        }
+
+        .gift-bow {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            background: #4cd3c2;
+            border-radius: 50%;
+            z-index: 3;
+            box-shadow: 0 0 15px rgba(76, 211, 194, 0.5);
+        }
+
+        .gift-bow::before,
+        .gift-bow::after {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 30px;
+            background: #4cd3c2;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(76, 211, 194, 0.5);
+        }
+
+        .gift-bow::before {
+            top: 15px;
+            left: -10px;
+            transform: rotate(-30deg);
+        }
+
+        .gift-bow::after {
+            top: 15px;
+            right: -10px;
+            transform: rotate(30deg);
+        }
+
+        .cover-text {
+            color: #5d5d5d;
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            margin-bottom: 30px;
+            font-weight: 600;
+            z-index: 2;
+            text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.5);
+        }
+
+        .open-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+            color: white;
+            border: none;
+            padding: 14px 36px;
+            border-radius: 50px;
+            font-size: clamp(1.1rem, 3vw, 1.3rem);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+            font-weight: 600;
+            letter-spacing: 1px;
+            outline: none;
+            z-index: 100;
+        }
+
+        .open-btn:hover {
+            background: linear-gradient(135deg, #ff5252 0%, #ff3d3d 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.5);
+        }
+
+        .open-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 6px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .open-btn:disabled {
+            background: linear-gradient(135deg, #ff8a8a 0%, #ff6b6b 100%);
+            cursor: wait;
+            transform: none;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+        }
+
+        /* 2. 蛋糕页 - 新增吹蜡烛交互 */
+        #cake-page {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            z-index: 9;
+        }
+
+        .cake-container {
+            position: relative;
+            margin-bottom: 50px;
+            z-index: 2;
+        }
+
+        .cake {
+            width: 280px;
+            height: 220px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .cake-base {
+            width: 280px;
+            height: 80px;
+            background: #ffd166;
+            border-radius: 10px 10px 0 0;
+            position: absolute;
+            bottom: 0;
+            box-shadow: 0 5px 15px rgba(255, 209, 102, 0.4);
+        }
+
+        .cake-middle {
+            width: 240px;
+            height: 70px;
+            background: #ff6b6b;
+            border-radius: 10px 10px 0 0;
+            position: absolute;
+            bottom: 70px;
+            left: 20px;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .cake-top {
+            width: 200px;
+            height: 60px;
+            background: #ff8c52;
+            border-radius: 50% 50% 10px 10px;
+            position: absolute;
+            bottom: 130px;
+            left: 40px;
+            box-shadow: 0 5px 15px rgba(255, 140, 82, 0.4);
+        }
+
+        .candle {
+            width: 15px;
+            height: 60px;
+            background: linear-gradient(135deg, #ff3d3d 0%, #ef476f 100%);
+            position: absolute;
+            bottom: 170px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 3px;
+            box-shadow: 0 0 10px rgba(255, 61, 61, 0.5);
+            transition: height 0.5s ease, opacity 0.5s ease;
+        }
+
+        .candle.wind {
+            animation: wind 0.5s ease-in-out infinite;
+        }
+
+        @keyframes wind {
+            0%, 100% { transform: translateX(-50%) rotate(0deg); }
+            50% { transform: translateX(-50%) rotate(5deg); }
+        }
+
+        .flame {
+            width: 20px;
+            height: 30px;
+            background: linear-gradient(135deg, #ffd166 0%, #ff8c52 100%);
+            border-radius: 50% 50% 20% 20%;
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 15px rgba(255, 209, 102, 0.8);
+            animation: flame-flicker 0.5s ease-in-out infinite alternate;
+            transition: all 0.3s ease;
+        }
+
+        .flame.extinguished {
+            opacity: 0;
+            transform: translateX(-50%) scale(0.5);
+        }
+
+        @keyframes flame-flicker {
+            0% { transform: translateX(-50%) scale(1); }
+            100% { transform: translateX(-50%) scale(1.1); }
+        }
+
+        .cake-text {
+            color: #5d5d5d;
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            margin-bottom: 30px;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .blow-btn {
+            background: linear-gradient(135deg, #4cd3c2 0%, #06d6a0 100%);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 50px;
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 15px rgba(76, 211, 194, 0.3);
+            margin-top: 10px;
+            z-index: 2;
+        }
+
+        .blow-btn:hover {
+            background: linear-gradient(135deg, #06d6a0 0%, #05b88c 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(76, 211, 194, 0.4);
+        }
+
+        /* 3. 祝福页 - 分阶段展示 */
+        #wish-page {
+            background: linear-gradient(135deg, #f0e6ff 0%, #d9b3ff 100%);
+            z-index: 8;
+        }
+
+        .wish-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(217, 179, 255, 0.3);
+            margin-bottom: 40px;
+            backdrop-filter: blur(5px);
+            position: relative;
+            z-index: 2;
+        }
+
+        .wish-stage {
+            display: none;
+        }
+
+        .wish-stage.active {
+            display: block;
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stage-title {
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            color: #ff6b6b;
+            margin-bottom: 25px;
+            font-weight: 700;
+            text-shadow: 1px 1px 3px rgba(255, 107, 107, 0.2);
+        }
+
+        .stage-content {
+            font-size: clamp(1.3rem, 4vw, 1.8rem);
+            color: #5d5d5d;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+
+        .wish-nav {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .prev-btn, .next-wish-btn {
+            padding: 10px 25px;
+            border-radius: 50px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .prev-btn {
+            background: #f0f0f0;
+            color: #5d5d5d;
+        }
+
+        .prev-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .next-wish-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+            color: white;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+        }
+
+        .next-wish-btn:hover {
+            background: linear-gradient(135deg, #ff5252 0%, #ff3d3d 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        /* 4. 许愿页 - 新增输入交互 */
+        #wish-input-page {
+            background: linear-gradient(135deg, #e0f7fa 0%, #80deea 100%);
+            z-index: 7;
+        }
+
+        .wish-input-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(128, 222, 234, 0.3);
+            margin-bottom: 30px;
+            backdrop-filter: blur(5px);
+            z-index: 2;
+        }
+
+        .wish-input-title {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            color: #118ab2;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .wish-input {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border: 2px solid #4cd3c2;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            resize: none;
+            margin-bottom: 20px;
+            color: #5d5d5d;
+            font-family: inherit;
+        }
+
+        .wish-input::placeholder {
+            color: #b0b0b0;
+        }
+
+        .submit-wish-btn {
+            background: linear-gradient(135deg, #118ab2 0%, #06d6a0 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 15px rgba(17, 138, 178, 0.3);
+        }
+
+        .submit-wish-btn:hover {
+            background: linear-gradient(135deg, #06d6a0 0%, #05b88c 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(17, 138, 178, 0.4);
+        }
+
+        /* 5. 彩蛋页 - 增强拆礼物交互 */
+        #surprise-page {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            z-index: 6;
+        }
+
+        .surprise-title {
+            font-size: clamp(1.8rem, 6vw, 3rem);
+            color: #5d5d5d;
+            margin-bottom: 25px;
+            text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.6);
+        }
+
+        .surprise-desc {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            color: #5d5d5d;
+            margin-bottom: 30px;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .gift-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 30px;
+            z-index: 2;
+        }
+
+        .mini-gift {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 8px 15px rgba(255, 107, 107, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .mini-gift:hover {
+            transform: translateY(-5px) rotate(3deg);
+            box-shadow: 0 12px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .mini-gift::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 15px;
+            background: #4cd3c2;
+            transform: translateY(-50%);
+        }
+
+        .mini-gift::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 15px;
+            height: 100%;
+            background: #4cd3c2;
+            transform: translateX(-50%);
+        }
+
+        .mini-gift.opened {
+            background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+            transform: scale(0.95);
+        }
+
+        .gift-reward {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .mini-gift.opened .gift-reward {
+            opacity: 1;
+        }
+
+        .claim-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+            color: white;
+            border: none;
+            padding: 14px 36px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .claim-btn:hover {
+            background: linear-gradient(135deg, #ff5252 0%, #ff3d3d 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(255, 107, 107, 0.5);
+        }
+
+        /* 6. 结果页 - 生日报告 */
+        #result-page {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            z-index: 5;
+        }
+
+        .result-container {
+            width: 100%;
+            max-width: 700px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(255, 154, 158, 0.3);
+            margin-bottom: 30px;
+            backdrop-filter: blur(5px);
+            z-index: 2;
+        }
+
+        .result-title {
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            color: #ff6b6b;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+
+        .result-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            background: #f8f8f8;
+            padding: 15px 25px;
+            border-radius: 15px;
+            min-width: 120px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            color: #ff6b6b;
+            font-weight: 700;
+        }
+
+        .user-wish {
+            background: #f0e6ff;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .user-wish-title {
+            font-size: 1.2rem;
+            color: #118ab2;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .user-wish-content {
+            font-size: 1.3rem;
+            color: #5d5d5d;
+            line-height: 1.6;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #4cd3c2 0%, #06d6a0 100%);
+            color: white;
+            border: none;
+            padding: 14px 36px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(76, 211, 194, 0.3);
+            font-weight: 600;
+        }
+
+        .restart-btn:hover {
+            background: linear-gradient(135deg, #06d6a0 0%, #05b88c 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(76, 211, 194, 0.4);
+        }
+
+        /* 通用特效元素 */
+        .firework {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            z-index: 1;
+            bottom: 0;
+            animation: firework-rise 1.2s ease-out forwards;
+        }
+
+        @keyframes firework-rise {
+            0% { transform: translateY(0); opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(-45vh); opacity: 0; }
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            animation: particle-explode 1.2s ease-out forwards;
+            opacity: 0.9;
+        }
+
+        @keyframes particle-explode {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0.2); opacity: 0; }
+        }
+
+        .blessing {
+            position: absolute;
+            font-size: clamp(1rem, 3vw, 1.4rem);
+            color: white;
+            background: rgba(93, 93, 93, 0.8);
+            padding: 8px 16px;
+            border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: all 0.6s ease;
+            transform: translateY(20px) scale(0.9);
+            backdrop-filter: blur(2px);
+            z-index: 2;
+        }
+
+        .blessing.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .balloon {
+            position: absolute;
+            width: 50px;
+            height: 60px;
+            border-radius: 50%;
+            bottom: -100px;
+            animation: balloon-rise 15s linear infinite;
+            z-index: 1;
+        }
+
+        .balloon::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 60px;
+            background: rgba(0,0,0,0.2);
+            bottom: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        @keyframes balloon-rise {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-120vh) rotate(10deg); }
+        }
+
+        .star {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite alternate;
+            z-index: 1;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .petal {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50% 0 50% 50%;
+            transform: rotate(45deg);
+            animation: petal-fall 10s linear infinite;
+            z-index: 1;
+        }
+
+        @keyframes petal-fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 0.8; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* 响应式优化 */
+        @media (max-width: 768px) {
+            .gift-box {
+                width: 180px;
+                height: 180px;
+                margin-bottom: 30px;
+            }
+            .gift-lid {
+                width: 200px;
+                height: 40px;
+                top: -20px;
+            }
+            .cake {
+                transform: scale(0.8);
+            }
+            .gift-grid {
+                gap: 15px;
+            }
+            .mini-gift {
+                width: 100px;
+                height: 100px;
+            }
+            .wish-container {
+                padding: 25px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .gift-box {
+                width: 150px;
+                height: 150px;
+                margin-bottom: 20px;
+            }
+            .gift-lid {
+                width: 170px;
+                height: 35px;
+                top: -18px;
+            }
+            .cake {
+                transform: scale(0.7);
+                margin-bottom: 20px;
+            }
+            .gift-grid {
+                gap: 10px;
+            }
+            .mini-gift {
+                width: 80px;
+                height: 80px;
+            }
+            .wish-input-container {
+                padding: 20px;
+            }
+            .result-container {
+                padding: 25px;
+            }
+            .stat-item {
+                padding: 10px 20px;
+                min-width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 1. 封面页 -->
+    <div id="cover-page" class="page active">
+        <div class="decor-group">
+            <div class="floating-decor">🎈</div>
+            <div class="floating-decor">🎁</div>
+            <div class="floating-decor">🎂</div>
+            <div class="floating-decor">🎉</div>
+            <div class="floating-decor">✨</div>
+            <div class="floating-decor">💖</div>
+        </div>
+        
+        <div class="gift-container">
+            <div class="gift-box" id="gift-box">
+                <div class="gift-lid"></div>
+                <div class="gift-ribbon"></div>
+                <div class="gift-bow"></div>
+            </div>
+        </div>
+        
+        <p class="cover-text">欢迎来到专属生日祝福盛宴！</p>
+        <button class="open-btn" id="open-btn">开启惊喜之旅</button>
+    </div>
+
+    <!-- 2. 蛋糕页（新增吹蜡烛交互） -->
+    <div id="cake-page" class="page">
+        <div class="decor-group">
+            <div class="star"></div>
+            <div class="star"></div>
+            <div class="star"></div>
+            <div class="petal"></div>
+            <div class="petal"></div>
+        </div>
+        
+        <div class="cake-container">
+            <div class="cake">
+                <div class="cake-base"></div>
+                <div class="cake-middle"></div>
+                <div class="cake-top"></div>
+                <div class="candle" id="candle">
+                    <div class="flame" id="flame"></div>
+                </div>
+            </div>
+        </div>
+        
+        <p class="cake-text">吹灭蜡烛，许下第一个愿望吧！</p>
+        <button class="blow-btn" id="blow-btn">点击吹蜡烛</button>
+    </div>
+
+    <!-- 3. 祝福页（分阶段展示） -->
+    <div id="wish-page" class="page">
+        <div class="decor-group">
+            <div class="star"></div>
+            <div class="star"></div>
+            <div class="star"></div>
+            <div class="star"></div>
+            <div class="petal"></div>
+            <div class="petal"></div>
+            <div class="petal"></div>
+        </div>
+        
+        <div class="wish-container">
+            <!-- 阶段1：初识祝福 -->
+            <div class="wish-stage active" id="stage-1">
+                <h2 class="stage-title">生日伊始，美好启程</h2>
+                <p class="stage-content">
+                    Myfriend陈涓涓，<br>
+                    愿你在新的一岁里，<br>
+                    眼里有光，心中有爱，<br>
+                    脚下有路，未来可期！
+                </p>
+                <div class="wish-nav">
+                    <button class="prev-btn" disabled>上一页</button>
+                    <button class="next-wish-btn" data-next="2">下一页祝福</button>
+                </div>
+            </div>
+            
+            <!-- 阶段2：深度祝福 -->
+            <div class="wish-stage" id="stage-2">
+                <h2 class="stage-title">岁月温柔，喜乐常伴</h2>
+                <p class="stage-content">
+                    愿你被世界温柔以待，<br>
+                    所遇皆善良，所行皆坦途，<br>
+                    三餐四季有温暖，<br>
+                    岁岁年年无遗憾！
+                </p>
+                <div class="wish-nav">
+                    <button class="prev-btn" data-prev="1">上一页祝福</button>
+                    <button class="next-wish-btn" data-next="3">下一页祝福</button>
+                </div>
+            </div>
+            
+            <!-- 阶段3：专属祈愿 -->
+            <div class="wish-stage" id="stage-3">
+                <h2 class="stage-title">初心不改，未来可期</h2>
+                <p class="stage-content">
+                    愿你永远保持热爱，<br>
+                    奔赴下一场山海，<br>
+                    活成自己喜欢的模样，<br>
+                    生日快乐，永远快乐！
+                </p>
+                <div class="wish-nav">
+                    <button class="prev-btn" data-prev="2">上一页祝福</button>
+                    <button class="next-wish-btn" id="to-wish-input">写下我的愿望</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 许愿页（新增输入交互） -->
+    <div id="wish-input-page" class="page">
+        <div class="decor-group">
+            <div class="balloon"></div>
+            <div class="balloon"></div>
+            <div class="balloon"></div>
+            <div class="star"></div>
+            <div class="star"></div>
+        </div>
+        
+        <div class="wish-input-container">
+            <h2 class="wish-input-title">写下你的专属生日愿望</h2>
+            <textarea class="wish-input" id="user-wish-input" placeholder="例如：希望新的一岁暴富暴美，平安喜乐..."></textarea>
+            <button class="submit-wish-btn" id="submit-wish-btn">提交愿望，解锁彩蛋</button>
+        </div>
+    </div>
+
+    <!-- 5. 彩蛋页（增强拆礼物交互） -->
+    <div id="surprise-page" class="page">
+        <div class="decor-group">
+            <div class="balloon"></div>
+            <div class="balloon"></div>
+            <div class="balloon"></div>
+            <div class="balloon"></div>
+            <div class="star"></div>
+            <div class="star"></div>
+            <div class="star"></div>
+        </div>
+        
+        <h2 class="surprise-title">🎉 惊喜礼物盒 🎉</h2>
+        <p class="surprise-desc">点击礼物盒，拆开属于你的专属惊喜！每拆开一个，快乐就多一分～</p>
+        
+        <div class="gift-grid" id="gift-grid">
+            <div class="mini-gift" data-reward="🎁">
+                <div class="gift-reward">🎁</div>
+            </div>
+            <div class="mini-gift" data-reward="💖">
+                <div class="gift-reward">💖</div>
+            </div>
+            <div class="mini-gift" data-reward="✨">
+                <div class="gift-reward">✨</div>
+            </div>
+            <div class="mini-gift" data-reward="🍀">
+                <div class="gift-reward">🍀</div>
+            </div>
+            <div class="mini-gift" data-reward="🎈">
+                <div class="gift-reward">🎈</div>
+            </div>
+            <div class="mini-gift" data-reward="🌟">
+                <div class="gift-reward">🌟</div>
+            </div>
+        </div>
+        
+        <button class="claim-btn" id="claim-btn">领取所有祝福，查看生日报告</button>
+    </div>
+
+    <!-- 6. 结果页（生日报告） -->
+    <div id="result-page" class="page">
+        <div class="decor-group">
+            <div class="firework"></div>
+            <div class="firework"></div>
+            <div class="balloon"></div>
+            <div class="balloon"></div>
+            <div class="star"></div>
+            <div class="star"></div>
+            <div class="petal"></div>
+            <div class="petal"></div>
+        </div>
+        
+        <div class="result-container">
+            <h2 class="result-title">你的专属生日报告</h2>
+            
+            <div class="result-stats">
+                <div class="stat-item">
+                    <div class="stat-label">交互次数</div>
+                    <div class="stat-value" id="interact-count">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">拆开礼物</div>
+                    <div class="stat-value" id="gift-count">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">收获祝福</div>
+                    <div class="stat-value" id="blessing-count">0</div>
+                </div>
+            </div>
+            
+            <div class="user-wish">
+                <div class="user-wish-title">你的生日愿望</div>
+                <div class="user-wish-content" id="display-user-wish">愿所有美好如期而至～</div>
+            </div>
+            
+            <p class="stage-content">
+                愿这份生日报告见证你的快乐，<br>
+                新的一岁，愿你事事顺心，喜乐常伴！
+            </p>
+        </div>
+        
+        <button class="restart-btn" id="restart-btn">重新开启祝福之旅</button>
+    </div>
+
+    <script>
+        // 核心元素获取
+        const pages = ['cover-page', 'cake-page', 'wish-page', 'wish-input-page', 'surprise-page', 'result-page'];
+        const coverPage = document.getElementById('cover-page');
+        const cakePage = document.getElementById('cake-page');
+        const wishPage = document.getElementById('wish-page');
+        const wishInputPage = document.getElementById('wish-input-page');
+        const surprisePage = document.getElementById('surprise-page');
+        const resultPage = document.getElementById('result-page');
+        
+        // 交互元素
+        const openBtn = document.getElementById('open-btn');
+        const blowBtn = document.getElementById('blow-btn');
+        const candle = document.getElementById('candle');
+        const flame = document.getElementById('flame');
+        const nextWishBtns = document.querySelectorAll('.next-wish-btn');
+        const prevBtns = document.querySelectorAll('.prev-btn');
+        const toWishInputBtn = document.getElementById('to-wish-input');
+        const userWishInput = document.getElementById('user-wish-input');
+        const submitWishBtn = document.getElementById('submit-wish-btn');
+        const miniGifts = document.querySelectorAll('.mini-gift');
+        const claimBtn = document.getElementById('claim-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        
+        // 统计元素
+        const interactCountEl = document.getElementById('interact-count');
+        const giftCountEl = document.getElementById('gift-count');
+        const blessingCountEl = document.getElementById('blessing-count');
+        const displayUserWishEl = document.getElementById('display-user-wish');
+        
+        // 配置项
+        const fireworkColors = ['#ff6b6b', '#4cd3c2', '#ffd166', '#06d6a0', '#118ab2', '#ef476f', '#a29bfe', '#ff8c52'];
+        const balloonColors = ['#ff6b6b', '#4cd3c2', '#ffd166', '#06d6a0', '#118ab2', '#ef476f', '#a29bfe'];
+        const blessings = [
+            "愿你每天都有新欢喜，笑容永不缺席",
+            "愿你所求皆如愿，所行皆坦途",
+            "愿你被世界温柔以待，温暖如初",
+            "愿你眼里有光，心中有爱，脚下有路",
+            "愿你平安喜乐，万事胜意",
+            "愿你暴富暴美，好运连连",
+            "愿你永远年轻，永远热泪盈眶",
+            "愿友谊长存，温暖相伴",
+            "愿你勇敢追梦，不负韶华",
+            "愿你日子清透，世事温柔"
+        ];
+        
+        // 全局状态
+        let isTransitioning = false;
+        let currentStage = 1;
+        let userWish = '';
+        let openedGifts = 0;
+        let interactCount = 0;
+        let activeBlessings = 0;
+
+        // 工具函数：切换页面
+        function switchPage(fromPageId, toPageId) {
+            if (isTransitioning) return;
+            isTransitioning = true;
+            
+            const fromPage = document.getElementById(fromPageId);
+            const toPage = document.getElementById(toPageId);
+            
+            fromPage.classList.remove('active');
+            setTimeout(() => {
+                toPage.classList.add('active');
+                // 页面切换后添加特效
+                if (toPageId === 'cake-page') createStars(10);
+                if (toPageId === 'wish-page') {
+                    createStars(15);
+                    createPetals(10);
+                    startFireworks();
+                }
+                if (toPageId === 'wish-input-page') createBalloons(6);
+                if (toPageId === 'surprise-page') {
+                    createBalloons(8);
+                    createStars(12);
+                }
+                if (toPageId === 'result-page') {
+                    startFireworks();
+                    updateResultStats();
+                }
+                setTimeout(() => {
+                    isTransitioning = false;
+                }, 600);
+            }, 300);
+            
+            // 统计交互次数
+            interactCount++;
+            updateInteractCount();
+        }
+
+        // 1. 封面页 → 蛋糕页
+        openBtn.addEventListener('click', function() {
+            if (isTransitioning || openBtn.disabled) return;
+            openBtn.disabled = true;
+            openBtn.textContent = '开启中...';
+            
+            // 礼物盒动画
+            const giftBox = document.getElementById('gift-box');
+            giftBox.style.transform = 'scale(1.2) rotate(10deg)';
+            giftBox.querySelector('.gift-lid').style.transform = 'translateY(-20px) rotate(5deg)';
+            
+            setTimeout(() => {
+                switchPage('cover-page', 'cake-page');
+                openBtn.textContent = '开启惊喜之旅';
+                openBtn.disabled = false;
+            }, 500);
+        });
+
+        // 2. 蛋糕页 → 祝福页（吹蜡烛交互）
+        blowBtn.addEventListener('click', function() {
+            if (isTransitioning) return;
+            
+            // 蜡烛动画
+            candle.classList.add('wind');
+            flame.classList.add('extinguished');
+            blowBtn.textContent = '愿望已记录...';
+            blowBtn.disabled = true;
+            
+            // 生成祝福标签
+            generateRandomBlessings(3);
+            
+            setTimeout(() => {
+                switchPage('cake-page', 'wish-page');
+                // 重置蜡烛状态
+                candle.classList.remove('wind');
+                flame.classList.remove('extinguished');
+                blowBtn.textContent = '点击吹蜡烛';
+                blowBtn.disabled = false;
+            }, 1500);
+            
+            // 统计交互次数
+            interactCount++;
+            updateInteractCount();
+        });
+
+        // 3. 祝福页阶段切换
+        nextWishBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (isTransitioning) return;
+                
+                if (this.id === 'to-wish-input') {
+                    // 跳转到许愿页
+                    switchPage('wish-page', 'wish-input-page');
+                } else {
+                    const nextStage = this.getAttribute('data-next');
+                    document.getElementById(`stage-${currentStage}`).classList.remove('active');
+                    document.getElementById(`stage-${nextStage}`).classList.add('active');
+                    currentStage = parseInt(nextStage);
+                    
+                    // 更新上一页按钮状态
+                    prevBtns.forEach(prevBtn => {
+                        prevBtn.disabled = currentStage === 1;
+                        prevBtn.setAttribute('data-prev', currentStage - 1);
+                    });
+                }
+                
+                // 统计交互次数
+                interactCount++;
+                updateInteractCount();
+            });
+        });
+
+        prevBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (isTransitioning || this.disabled) return;
+                
+                const prevStage = this.getAttribute('data-prev');
+                document.getElementById(`stage-${currentStage}`).classList.remove('active');
+                document.getElementById(`stage-${prevStage}`).classList.add('active');
+                currentStage = parseInt(prevStage);
+                
+                // 更新上一页按钮状态
+                this.disabled = currentStage === 1;
+                
+                // 统计交互次数
+                interactCount++;
+                updateInteractCount();
+            });
+        });
+
+        // 4. 许愿页 → 彩蛋页
+        submitWishBtn.addEventListener('click', function() {
+            if (isTransitioning) return;
+            
+            userWish = userWishInput.value.trim() || '愿所有美好如期而至～';
+            displayUserWishEl.textContent = userWish;
+            
+            submitWishBtn.textContent = '提交中...';
+            submitWishBtn.disabled = true;
+            
+            // 生成祝福标签
+            generateRandomBlessings(5);
+            
+            setTimeout(() => {
+                switchPage('wish-input-page', 'surprise-page');
+                submitWishBtn.textContent = '提交愿望，解锁彩蛋';
+                submitWishBtn.disabled = false;
+                userWishInput.value = '';
+            }, 1000);
+            
+            // 统计交互次数和祝福数
+            interactCount++;
+            activeBlessings += 5;
+            updateInteractCount();
+            updateBlessingCount();
+        });
+
+        // 5. 彩蛋页拆礼物交互
+        miniGifts.forEach(gift => {
+            gift.addEventListener('click', function() {
+                if (this.classList.contains('opened') || isTransitioning) return;
+                
+                this.classList.add('opened');
+                openedGifts++;
+                giftCountEl.textContent = openedGifts;
+                
+                // 生成随机祝福
+                generateRandomBlessings(1);
+                
+                // 烟花特效
+                const x = this.getBoundingClientRect().left + this.offsetWidth / 2;
+                const y = this.getBoundingClientRect().top;
+                createMiniFirework(x, y);
+                
+                // 统计交互次数和祝福数
+                interactCount++;
+                activeBlessings++;
+                updateInteractCount();
+                updateBlessingCount();
+            });
+        });
+
+        // 6. 彩蛋页 → 结果页
+        claimBtn.addEventListener('click', function() {
+            if (isTransitioning) return;
+            
+            claimBtn.textContent = '生成报告中...';
+            claimBtn.disabled = true;
+            
+            // 生成大量祝福
+            generateRandomBlessings(8);
+            
+            setTimeout(() => {
+                switchPage('surprise-page', 'result-page');
+                claimBtn.textContent = '领取所有祝福，查看生日报告';
+                claimBtn.disabled = false;
+            }, 1000);
+            
+            // 统计交互次数和祝福数
+            interactCount++;
+            activeBlessings += 8;
+            updateInteractCount();
+            updateBlessingCount();
+        });
+
+        // 7. 重新开始
+        restartBtn.addEventListener('click', function() {
+            if (isTransitioning) return;
+            
+            // 重置所有状态
+            currentStage = 1;
+            openedGifts = 0;
+            interactCount = 0;
+            activeBlessings = 0;
+            userWish = '';
+            
+            // 重置页面状态
+            pages.forEach(pageId => {
+                const page = document.getElementById(pageId);
+                page.classList.remove('active');
+            });
+            coverPage.classList.add('active');
+            
+            // 重置祝福阶段
+            document.querySelectorAll('.wish-stage').forEach(stage => stage.classList.remove('active'));
+            document.getElementById('stage-1').classList.add('active');
+            
+            // 重置礼物状态
+            miniGifts.forEach(gift => gift.classList.remove('opened'));
+            
+            // 重置统计
+            updateResultStats();
+            
+            // 清空特效元素
+            document.querySelectorAll('.blessing, .firework, .particle, .balloon, .star, .petal').forEach(el => el.remove());
+            
+            isTransitioning = false;
+        });
+
+        // 特效函数：烟花
+        function startFireworks() {
+            let count = 0;
+            const maxCount = 6;
+            
+            const interval = setInterval(() => {
+                if (count >= maxCount || !wishPage.classList.contains('active')) {
+                    clearInterval(interval);
+                    return;
+                }
+                
+                const firework = document.createElement('div');
+                firework.className = 'firework';
+                firework.style.left = `${Math.random() * 60 + 20}%`;
+                firework.style.backgroundColor = fireworkColors[Math.floor(Math.random() * fireworkColors.length)];
+                
+                wishPage.appendChild(firework);
+                
+                setTimeout(() => {
+                    explodeFirework(firework.style.left);
+                    firework.remove();
+                }, 1000);
+                
+                count++;
+            }, 800);
+        }
+
+        function explodeFirework(x) {
+            const particleCount = 8;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = x;
+                particle.style.top = '40%';
+                particle.style.backgroundColor = fireworkColors[Math.floor(Math.random() * fireworkColors.length)];
+                
+                const angle = (i / particleCount) * Math.PI * 2;
+                const distance = 30 + Math.random() * 20;
+                particle.style.setProperty('--tx', `${Math.cos(angle) * distance}px`);
+                particle.style.setProperty('--ty', `${Math.sin(angle) * distance}px`);
+                
+                wishPage.appendChild(particle);
+                setTimeout(() => particle.remove(), 1200);
+            }
+        }
+
+        // 特效函数：小型烟花（拆礼物时）
+        function createMiniFirework(x, y) {
+            const particleCount = 6;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                particle.style.position = 'fixed';
+                particle.style.backgroundColor = fireworkColors[Math.floor(Math.random() * fireworkColors.length)];
+                
+                const angle = (i / particleCount) * Math.PI * 2;
+                const distance = 20 + Math.random() * 15;
+                particle.style.setProperty('--tx', `${Math.cos(angle) * distance}px`);
+                particle.style.setProperty('--ty', `${Math.sin(angle) * distance}px`);
+                
+                document.body.appendChild(particle);
+                setTimeout(() => particle.remove(), 800);
+            }
+        }
+
+        // 特效函数：生成祝福标签
+        function generateRandomBlessings(count) {
+            const used = new Set();
+            const maxCount = Math.min(count, blessings.length);
+            
+            for (let i = 0; i < maxCount; i++) {
+                let idx;
+                do idx = Math.floor(Math.random() * blessings.length);
+                while (used.has(idx));
+                used.add(idx);
+                
+                const bless = document.createElement('div');
+                bless.className = 'blessing';
+                bless.textContent = blessings[idx];
+                bless.style.left = `${Math.random() * 60 + 20}%`;
+                bless.style.top = `${Math.random() * 60 + 20}%`;
+                
+                const colors = [
+                    'linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%)',
+                    'linear-gradient(135deg, #4cd3c2 0%, #6ee7d3 100%)',
+                    'linear-gradient(135deg, #ffd166 0%, #ffe08e 100%)'
+                ];
+                bless.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                // 根据当前活跃页面添加
+                if (wishPage.classList.contains('active')) wishPage.appendChild(bless);
+                else if (cakePage.classList.contains('active')) cakePage.appendChild(bless);
+                else if (wishInputPage.classList.contains('active')) wishInputPage.appendChild(bless);
+                else if (surprisePage.classList.contains('active')) surprisePage.appendChild(bless);
+                
+                setTimeout(() => bless.classList.add('show'), 50);
+                setTimeout(() => {
+                    bless.classList.remove('show');
+                    setTimeout(() => bless.remove(), 600);
+                }, 3000);
+            }
+        }
+
+        // 特效函数：创建星星
+        function createStars(count) {
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 3}s`;
+                
+                document.body.appendChild(star);
+                
+                // 自动清理
+                setTimeout(() => star.remove(), 15000);
+            }
+        }
+
+        // 特效函数：创建气球
+        function createBalloons(count) {
+            for (let i = 0; i < count; i++) {
+                const balloon = document.createElement('div');
+                balloon.className = 'balloon';
+                balloon.style.left = `${Math.random() * 100}%`;
+                balloon.style.backgroundColor = balloonColors[Math.floor(Math.random() * balloonColors.length)];
+                balloon.style.animationDuration = `${Math.random() * 10 + 15}s`;
+                balloon.style.animationDelay = `${Math.random() * 5}s`;
+                
+                document.body.appendChild(balloon);
+                
+                // 自动清理
+                setTimeout(() => balloon.remove(), 20000);
+            }
+        }
+
+        // 特效函数：创建花瓣
+        function createPetals(count) {
+            for (let i = 0; i < count; i++) {
+                const petal = document.createElement('div');
+                petal.className = 'petal';
+                petal.style.left = `${Math.random() * 100}%`;
+                petal.style.animationDuration = `${Math.random() * 5 + 10}s`;
+                petal.style.animationDelay = `${Math.random() * 3}s`;
+                
+                document.body.appendChild(petal);
+                
+                // 自动清理
+                setTimeout(() => petal.remove(), 15000);
+            }
+        }
+
+        // 统计更新函数
+        function updateInteractCount() {
+            interactCountEl.textContent = interactCount;
+        }
+
+        function updateGiftCount() {
+            giftCountEl.textContent = openedGifts;
+        }
+
+        function updateBlessingCount() {
+            blessingCountEl.textContent = activeBlessings;
+        }
+
+        function updateResultStats() {
+            interactCountEl.textContent = interactCount;
+            giftCountEl.textContent = openedGifts;
+            blessingCountEl.textContent = activeBlessings;
+            displayUserWishEl.textContent = userWish || '愿所有美好如期而至～';
+        }
+
+        // 页面加载时初始化
+        window.addEventListener('load', function() {
+            createStars(8);
+            createPetals(5);
+        });
+    </script>
+</body>
+</html>
