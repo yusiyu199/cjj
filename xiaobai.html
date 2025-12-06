@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小白- 动态能力分析</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #4b6cb7;
+            --secondary: #182848;
+            --accent: #ff6b6b;
+            --light: #f5f7fa;
+            --dark: #2c3e50;
+            --gray: #7f8c8d;
+            --transition: all 0.3s ease;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --radius: 20px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* 浮动粒子背景 */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(75, 108, 183, 0.2);
+            animation: float 15s infinite linear;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.2;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateY(-1000px) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 导航栏 */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+            transition: var(--transition);
+        }
+        
+        .navbar:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+        
+        .nav-links a {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            transition: var(--transition);
+            padding: 8px 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary);
+            background: rgba(75, 108, 183, 0.1);
+            transform: translateY(-3px);
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: var(--transition);
+        }
+        
+        .nav-links a:hover::after, .nav-links a.active::after {
+            width: 100%;
+        }
+        
+        /* 页面容器 */
+        .page {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            animation: pageEnter 0.7s ease forwards;
+        }
+        
+        @keyframes pageEnter {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* 头部区域 */
+        header {
+            text-align: center;
+            padding: 60px 30px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: var(--radius);
+            margin-bottom: 40px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .profile-img-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 25px;
+        }
+        
+        .profile-img {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            transition: var(--transition);
+            z-index: 2;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .profile-img:hover {
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .profile-img-container::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--accent), var(--primary));
+            z-index: 1;
+            opacity: 0.7;
+            animation: rotate 10s linear infinite;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+        
+        .title {
+            font-size: 1.4rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        
+        .intro {
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+        
+        /* 内容区域 */
+        .section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: var(--radius);
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+            transition: var(--transition);
+        }
+        
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .section:hover::before {
+            width: 7px;
+        }
+        
+        h2 {
+            color: var(--primary);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        h2::before {
+            content: '';
+            display: inline-block;
+            width: 10px;
+            height: 30px;
+            background: var(--accent);
+            border-radius: 5px;
+        }
+        
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: var(--accent);
+        }
+        
+        /* 雷达图部分 */
+        .radar-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            align-items: flex-start;
+        }
+        
+        .radar-container {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+        
+        .radar-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .radar-btn {
+            padding: 8px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+        
+        .radar-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-3px);
+        }
+        
+        .radar-chart-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            padding: 20px;
+        }
+        
+        .radar-chart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .radar-info {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .radar-info ul {
+            list-style: none;
+        }
+        
+        .radar-info li {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 10px;
+            background: white;
+            transition: var(--transition);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+        }
+        
+        .radar-info li:hover {
+            background: #f0f4ff;
+            transform: translateX(5px);
+        }
+        
+        .radar-info li.active {
+            background: rgba(75, 108, 183, 0.1);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .attribute-color {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 15px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .attribute-value {
+            margin-left: auto;
+            font-weight: bold;
+            color: var(--primary);
+            background: rgba(75, 108, 183, 0.1);
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+        
+        .attribute-details {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            display: none;
+        }
+        
+        .attribute-details.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .comparison-chart {
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .comparison-chart h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+        
+        .comparison-bar {
+            height: 30px;
+            margin-bottom: 10px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .comparison-fill {
+            height: 100%;
+            border-radius: 15px;
+            transition: width 1s ease;
+            position: relative;
+        }
+        
+        .comparison-label {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        /* 卡片网格布局 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+        }
+        
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .card h3 {
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        /* 技能部分 */
+        .skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .skill {
+            background: #eef2f7;
+            padding: 12px 22px;
+            border-radius: 30px;
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .skill::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            transition: var(--transition);
+        }
+        
+        .skill:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(75, 108, 183, 0.3);
+        }
+        
+        .skill:hover::before {
+            left: 100%;
+        }
+        
+        /* 时间轴样式 */
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+            transform: translateX(-50%);
+            border-radius: 10px;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 40px;
+            width: 50%;
+            padding: 0 40px;
+        }
+        
+        .timeline-item:nth-child(odd) {
+            left: 0;
+        }
+        
+        .timeline-item:nth-child(even) {
+            left: 50%;
+        }
+        
+        .timeline-content {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            position: relative;
+            transition: var(--transition);
+        }
+        
+        .timeline-content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        }
+        
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+        
+        .timeline-item:nth-child(odd) .timeline-content::before {
+            right: -50px;
+        }
+        
+        .timeline-item:nth-child(even) .timeline-content::before {
+            left: -50px;
+        }
+        
+        .timeline-date {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* 联系部分 */
+        .contact-list {
+            list-style: none;
+        }
+        
+        .contact-list li {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+            padding: 15px;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .contact-list li:hover {
+            background: #f5f7fa;
+            transform: translateX(5px);
+        }
+        
+        .contact-list i {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            margin-right: 15px;
+            font-size: 1.2rem;
+            box-shadow: 0 5px 15px rgba(75, 108, 183, 0.3);
+        }
+        
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            text-decoration: none;
+            transition: var(--transition);
+            font-size: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .social-links a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            transform: translateY(100%);
+            transition: var(--transition);
+        }
+        
+        .social-links a:hover {
+            background: var(--secondary);
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .social-links a:hover::before {
+            transform: translateY(0);
+        }
+        
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-top: 30px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: var(--radius);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .timeline::before {
+                left: 30px;
+            }
+            
+            .timeline-item {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 0;
+            }
+            
+            .timeline-item:nth-child(even) {
+                left: 0;
+            }
+            
+            .timeline-item:nth-child(odd) .timeline-content::before,
+            .timeline-item:nth-child(even) .timeline-content::before {
+                left: -40px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+                padding: 20px;
+            }
+            
+            .nav-links {
+                gap: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            header {
+                padding: 40px 20px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .section {
+                padding: 25px 20px;
+            }
+            
+            .profile-img {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .radar-section {
+                flex-direction: column;
+            }
+            
+            .radar-chart-container {
+                height: 350px;
+            }
+            
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .skills-container {
+                justify-content: center;
+            }
+            
+            .social-links {
+                flex-wrap: wrap;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .title {
+                font-size: 1.1rem;
+            }
+            
+            .nav-links a {
+                padding: 6px 10px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 浮动粒子背景 -->
+    <div class="particles" id="particles"></div>
+    
+    <div class="container">
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <a href="#" class="logo">
+                <div class="logo-icon">P</div>
+                庞显武
+            </a>
+            <div class="nav-links">
+                <a href="#" class="nav-link active" data-page="home">
+                    <i class="fas fa-home"></i> 首页
+                </a>
+                <a href="#" class="nav-link" data-page="skills">
+                    <i class="fas fa-code"></i> 专业技能
+                </a>
+                <a href="#" class="nav-link" data-page="radar">
+                    <i class="fas fa-chart-pie"></i> 能力分析
+                </a>
+                <a href="#" class="nav-link" data-page="experience">
+                    <i class="fas fa-briefcase"></i> 工作经历
+                </a>
+                <a href="#" class="nav-link" data-page="education">
+                    <i class="fas fa-graduation-cap"></i> 教育背景
+                </a>
+                <a href="#" class="nav-link" data-page="contact">
+                    <i class="fas fa-envelope"></i> 联系我
+                </a>
+            </div>
+        </nav>
+        
+        <!-- 首页 -->
+        <div id="home" class="page active">
+            <header>
+                <div class="profile-img-container">
+                    <img src="https://s2.imgbb.ws/file/storage-sv2/Bh92A.jpg" alt="个人照片" class="profile-img">
+                </div>
+                <h1>小白</h1>
+                <div class="title">罗小黑官方成员 | 爆破专家 | 金属设计师</div>
+                <p class="intro">他喜好吃鱼，工作，并且拥有丰富的行业经验和专业技能，在多个领域展现出卓越才能。</p>
+            </header>
+            
+            <section class="section">
+                <h2><i class="fas fa-star"></i> 个人亮点</h2>
+                <div class="card-grid">
+                    <div class="card">
+                        <div class="card-icon">
+                            <i class="fas fa-laptop-code"></i>
+                        </div>
+                        <h3>专家</h3>
+                        <p>精通各类吃鱼方式以及途径，能够提供专业的吃鱼解决方案，还能避免一一零的追查。</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">
+                            <i class="fas fa-palette"></i>
+                        </div>
+                        <h3>创意设计</h3>
+                        <p>拥有出色的审美能力和创意思维，能够设计出引人注目的作品。</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>团队协作</h3>
+                        <p>擅长团队沟通与协作，能够有效领导团队完成复杂项目。</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <h3>业务精通</h3>
+                        <p>对行业有深刻理解，能够准确把握市场需求，提供切实可行的业务解决方案。</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2><i class="fas fa-fire"></i> 核心优势</h2>
+                <div class="card-grid">
+                    <div class="card">
+                        <h3>技术专精</h3>
+                        <p>在吃鱼领域有多年深入研究，掌握多种吃鱼核心技术，能够解决各种吃鱼的复杂问题。</p>
+                        <div class="progress-bar" style="margin-top: 15px;">
+                            <div class="progress" style="width: 95%; background: var(--primary); height: 8px; border-radius: 4px;"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>创意无限</h3>
+                        <p>拥有丰富的设计经历，能够为项目提供独特见解和想法。</p>
+                        <div class="progress-bar" style="margin-top: 15px;">
+                            <div class="progress" style="width: 90%; background: var(--accent); height: 8px; border-radius: 4px;"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>业务精通</h3>
+                        <p>对行业有深刻理解，能够准确把握市场需求，提供切实可行的业务解决方案。</p>
+                        <div class="progress-bar" style="margin-top: 15px;">
+                            <div class="progress" style="width: 85%; background: var(--secondary); height: 8px; border-radius: 4px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- 专业技能页面 -->
+        <div id="skills" class="page">
+            <section class="section">
+                <h2><i class="fas fa-code"></i> 专业技能</h2>
+                <div class="skills-container">
+                    <div class="skill">吃鱼专家</div>
+                    <div class="skill">MPP技术</div>
+                    <div class="skill">CSS开发</div>
+                    <div class="skill">GZPXHCS</div>
+                    <div class="skill">平面模特</div>
+                    <div class="skill"平面设计</div>
+                    <div class="skill">创意策划</div>
+                    <div class="skill">团队管理</div>
+                    <div class="skill">AC Xiang</div>
+                    <div class="skill">Ching</div>
+                    <div class="skill">项目管理</div>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2><i class="fas fa-tools"></i> 技能详解</h2>
+                <div class="card-grid">
+                    <div class="card">
+                        <h3>吃鱼技术</h3>
+                        <p>精通各种吃鱼方法和途径，能够提供专业的吃鱼方案。</p>
+                        <div class="skill-level">专家级</div>
+                    </div>
+                    <div class="card">
+                        <h3>渔具制作</h3>
+                        <p>熟练掌握各类钓鱼制作工具，能够创作高质量的模型。</p>
+                        <div class="skill-level">高级</div>
+                    </div>
+                    <div class="card">
+                        <h3>创意设计</h3>
+                        <p>拥有丰富的设计经历，能够为项目提供独特见解和想法。</p>
+                        <div class="skill-level">高级</div>
+                    </div>
+                    <div class="card">
+                        <h3>团队协作</h3>
+                        <p>擅长团队沟通与协作，能够有效领导团队完成复杂项目。</p>
+                        <div class="skill-level">高级</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- 能力分析页面 -->
+        <div id="radar" class="page">
+            <section class="section">
+                <h2><i class="fas fa-chart-pie"></i> 动态能力分析</h2>
+                
+                <div class="radar-section">
+                    <div class="radar-container">
+                        <div class="radar-controls">
+                            <button class="radar-btn" id="radar-animate">动画效果</button>
+                            <button class="radar-btn" id="radar-compare">对比模式</button>
+                            <button class="radar-btn" id="radar-reset">重置视图</button>
+                        </div>
+                        <div class="radar-chart-container">
+                            <canvas id="radarChart" class="radar-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="radar-info">
+                        <ul>
+                            <li data-attribute="hardness" class="active">
+                                <span class="attribute-color" style="background-color: #4b6cb7;"></span>
+                                灵力: <span class="attribute-value">90/100</span>
+                            </li>
+                            <li data-attribute="strength">
+                                <span class="attribute-color" style="background-color: #ff6b6b;"></span>
+                                体力: <span class="attribute-value">70/100</span>
+                            </li>
+                            <li data-attribute="work-ability">
+                                <span class="attribute-color" style="background-color: #6bcf7f;"></span>
+                                战斗能力: <span class="attribute-value">70/100</span>
+                            </li>
+                            <li data-attribute="yp-experience">
+                                <span class="attribute-color" style="background-color: #ffa726;"></span>
+                                吃鱼经验: <span class="attribute-value">100/100</span>
+                            </li>
+                            <li data-attribute="chicken-experience">
+                                <span class="attribute-color" style="background-color: #ab47bc;"></span>
+                                摸鱼经历: <span class="attribute-value">80/100</span>
+                            </li>
+                            <li data-attribute="endurance">
+                                <span class="attribute-color" style="background-color: #26c6da;"></span>
+                               抗伤: <span class="attribute-value">20/100</span>
+                            </li>
+                        </ul>
+                        
+                        <div class="attribute-details active" id="hardness-details">
+                            <h3>灵力分析</h3>
+                            <p>灵力指标反映了一中灵质大小程度。</p>
+                            <p>这种能力在高强度工作环境和实际操作中尤为重要。</p>
+                        </div>
+                        
+                        <div class="attribute-details" id="strength-details">
+                            <h3>体力分析</h3>
+                            <p>体力指标衡量了在持续工作状态下的表现稳定性。70/100的评分表明在常规工作强度下表现良好，但在极端情况下可能需要调整动作节奏。</p>
+                            <p>这一能力对于需要长期稳定输出的工作环境非常重要。</p>
+                        </div>
+                        
+                        <div class="attribute-details" id="work-ability-details">
+                            <h3>战斗能力分析</h3>
+                            <p>战斗能力指标综合评估了专业技能、执行效率和问题解决能力。70/100的评分表明具备扎实的专业基础和良好的工作表现。</p>
+                            <p>这一能力是职业发展的核心基础，直接影响实际行动中的质量和效率。</p>
+                        </div>
+                        
+                        <div class="attribute-details" id="yp-experience-details">
+                            <h3>吃鱼经验分析</h3>
+                            <p>吃鱼经验指标评估了在特定领域的实战经验和应对复杂情况的能力。100/100的满分表明在这一领域拥有极为丰富的经验和出色的表现。</p>
+                            <p>这种经验积累对于处理多鱼时和危机来临时具有重要价值。</p>
+                        </div>
+                        
+                        <div class="attribute-details" id="chicken-experience-details">
+                            <h3>摸鱼经历分析</h3>
+                            <p>摸鱼经历指标反映了在摸鱼环境中的策略思维和快速反应能力。80/100的高分表明在竞争激烈的摸鱼的环境中表现出色。</p>
+                            <p>这种能力对于应对一些特别的鸡时尤为重要。</p>
+                        </div>
+                        
+                        <div class="attribute-details" id="endurance-details">
+                            <h3>抗伤分析</h3>
+                            <p>抗伤指标衡量了在长期摸鱼中的持续表现能力。20/100的评分表明在短期高强度摸鱼中能够发挥出色，但在长期持摸鱼p中可能需要调整身体。</p>
+                            <p>这一指标提示需要注意摸鱼节奏管理和精力分配策略。</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="comparison-chart">
+                    <h3>能力对比分析</h3>
+                    <div class="comparison-bar">
+                        <div class="comparison-fill" style="width: 90%; background: #4b6cb7;">
+                            <span class="comparison-label">灵力: 90%</span>
+                        </div>
+                    </div>
+                    <div class="comparison-bar">
+                        <div class="comparison-fill" style="width: 70%; background: #ff6b6b;">
+                            <span class="comparison-label">体力: 70%</span>
+                        </div>
+                    </div>
+                    <div class="comparison-bar">
+                        <div class="comparison-fill" style="width: 70%; background: #6bcf7f;">
+                            <span class="comparison-label">战斗能力: 70%</span>
+                        </div>
+                    </div>
+                    <div class="comparison-bar">
+                        <div class="comparison-fill" style="width: 100%; background: #ffa726;">
+                            <span class="comparison-label">吃鱼经验: 100%</span>
+                        </div>
+                    </div>
+                    <div class="comparison-bar">
+                        <div class="comparison-fill" style="width: 80%; background: #ab47bc;">
+                            <span class="comparison-label">摸鱼经历: 80%</span>
+                        </div>
+                    </div>
+                    <div class="comparison-bar">
+                        <div class="comparison-fill" style="width: 20%; background: #26c6da;">
+                            <span class="comparison-label">抗伤: 20%</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- 工作经历页面 -->
+        <div id="experience" class="page">
+            <section class="section">
+                <h2><i class="fas fa-briefcase"></i> 工作经历</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-date"><i class="fas fa-calendar-alt"></i> 2020年3月 - 至今</div>
+                            <h3>弘毅传媒</h3>
+                            <p>负责公司核心产品的渔具架构设计和开发，带领5人老司机团队，优化渔具性能，使钓鱼效果提升40%。</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-date"><i class="fas fa-calendar-alt"></i> 2018年6月 - 2029年2月</div>
+                            <h3>渔具制造开发工程师 - 创新科技弘毅传媒有限公司</h3>
+                            <p>参与多个大型企业级渔具实用开发，实现柔软式设计，确保产品在不同情况上的优秀用户体验。</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-date"><i class="fas fa-calendar-alt"></i> 2016年9月 - 2018年5月</div>
+                            <h3>初级开发工程师 - 先锋科技有限公司</h3>
+                            <p>参与公司核心产品的开发与维护，积累了丰富的实战经验，为后续职业发展打下坚实基础。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2><i class="fas fa-trophy"></i> 项目成果</h2>
+                <div class="card-grid">
+                    <div class="card">
+                        <h3>渔具性能优化项目</h3>
+                        <div class="timeline-date">2021年1月 - 2021年12月</div>
+                        <p>主导渔具性能优化项目，通过技术创新和流程改进，使整体性能提升40%，获得公司年度创新奖。</p>
+                    </div>
+                    <div class="card">
+                        <h3>用户体验改进计划</h3>
+                        <div class="timeline-date">2020年6月 - 2020年12月</div>
+                        <p>负责用户体验改进计划，通过用户调研和数据分析，提出多项改进建议并成功实施，用户满意度提升25%。</p>
+                    </div>
+                    <div class="card">
+                        <h3>新媒体营销活动</h3>
+                        <div class="timeline-date">2019年3月 - 2019年9月</div>
+                        <p>策划并执行大型新媒体营销活动，覆盖用户超过100万，品牌知名度提升30%。</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- 教育背景页面 -->
+        <div id="education" class="page">
+            <section class="section">
+                <h2><i class="fas fa-graduation-cap"></i> 教育背景</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-date"><i class="fas fa-calendar-alt"></i> 2014年9月 - 2017年6月</div>
+                            <h3>计算机科学与技术硕士 - 河池学院</h3>
+                            <p>研究方向：人渔交互与用户体验，毕业论文《钓鱼舒适化开发模式研究》被评为优秀论文。</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-date"><i class="fas fa-calendar-alt"></i> 2007年9月 - 2025年6月</div>
+                            <h3>渔具设计开发工程师- 弘毅传媒有限公司</h3>
+                            <p>在专业培训机构接受系统化的渔具设计开发培训，掌握了先进的开发理念和技术方法。</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-date"><i class="fas fa-calendar-alt"></i> 2010年9月 - 2014年6月</div>
+                            <h3>计算机科学与技术学士 - 河池学院</h3>
+                            <p>主修计算机科学与技术，辅修设计学，为后续的职业发展奠定了坚实的理论基础。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2><i class="fas fa-certificate"></i> 专业认证</h2>
+                <div class="card-grid">
+                    <div class="card">
+                        <h3>高级DY师认证</h3>
+                        <div class="timeline-date">2018年3月</div>
+                        <p>通过严格的理论和实践考核，获得高级DY师认证，证明在DY领域的专业能力。</p>
+                    </div>
+                    <div class="card">
+                        <h3>创意渔具设计大师认证</h3>
+                        <div class="timeline-date">2019年7月</div>
+                        <p>获得创意渔具设计大师认证，证明在视觉设计和创意表达方面的卓越能力。</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- 联系我页面 -->
+        <div id="contact" class="page">
+            <section class="section">
+                <h2><i class="fas fa-envelope"></i> 联系我</h2>
+                <ul class="contact-list">
+                    <li><i class="fas fa-envelope"></i> xiaobai@qq.com</li>
+                    <li><i class="fas fa-phone"></i> +86 188888888888</li>
+                    <li><i class="fas fa-map-marker-alt"></i> 中国</li>
+                </ul>
+                <div class="social-links">
+                    <a href="#" title="GitHub"><i class="fab fa-github"></i></a>
+                    <a href="#" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#" title="微博"><i class="fab fa-weibo"></i></a>
+                    <a href="#" title="知乎"><i class="fab fa-zhihu"></i></a>
+                    <a href="#" title="微信"><i class="fab fa-weixin"></i></a>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2><i class="fas fa-comment-dots"></i> 留言板</h2>
+                <form id="contact-form">
+                    <div style="margin-bottom: 20px;">
+                        <label for="name" style="display: block; margin-bottom: 8px; font-weight: 500;">姓名</label>
+                        <input type="text" id="name" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; transition: var(--transition);" placeholder="请输入您的姓名">
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label for="email" style="display: block; margin-bottom: 8px; font-weight: 500;">邮箱</label>
+                        <input type="email" id="email" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; transition: var(--transition);" placeholder="请输入您的邮箱">
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label for="message" style="display: block; margin-bottom: 8px; font-weight: 500;">留言内容</label>
+                        <textarea id="message" rows="5" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; transition: var(--transition);" placeholder="请输入您的留言内容"></textarea>
+                    </div>
+                    <button type="submit" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: var(--transition); width: 100%;">发送留言</button>
+                </form>
+            </section>
+        </div>
+        
+        <!-- 页脚 -->
+        <footer>
+            <p>© 2025 小白 - 互动式个人简介 | 设计灵感来自弘毅传媒</p>
+        </footer>
+    </div>
+
+    <script>
+        // 创建浮动粒子背景
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // 随机大小
+                const size = Math.random() * 60 + 10;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // 随机位置
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                // 随机颜色
+                const colors = [
+                    'rgba(75, 108, 183, 0.3)',
+                    'rgba(255, 107, 107, 0.3)',
+                    'rgba(107, 207, 127, 0.3)',
+                    'rgba(255, 167, 38, 0.3)',
+                    'rgba(171, 71, 188, 0.3)',
+                    'rgba(38, 198, 218, 0.3)'
+                ];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                // 随机动画延迟和持续时间
+                particle.style.animationDelay = `${Math.random() * 15}s`;
+                particle.style.animationDuration = `${Math.random() * 20 + 10}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // 页面切换功能
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            
+            const navLinks = document.querySelectorAll('.nav-link');
+            const pages = document.querySelectorAll('.page');
+            
+            // 默认显示首页
+            showPage('home');
+            
+            // 导航链接点击事件
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const pageId = this.getAttribute('data-page');
+                    
+                    // 更新活动导航链接
+                    navLinks.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 显示对应页面
+                    showPage(pageId);
+                });
+            });
+            
+            // 显示指定页面的函数
+            function showPage(pageId) {
+                pages.forEach(page => {
+                    if (page.id === pageId) {
+                        page.classList.add('active');
+                    } else {
+                        page.classList.remove('active');
+                    }
+                });
+                
+                // 如果是雷达图页面，绘制雷达图
+                if (pageId === 'radar') {
+                    setTimeout(initRadarChart, 300);
+                }
+                
+                // 滚动到顶部
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            
+            // 初始化雷达图交互
+            initRadarInteractivity();
+        });
+        
+        // 雷达图实例
+        let radarChartInstance = null;
+        
+        // 初始化雷达图
+        function initRadarChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            
+            // 如果已有雷达图实例，先销毁
+            if (radarChartInstance) {
+                radarChartInstance.destroy();
+            }
+            
+            // 雷达图数据
+            const data = {
+                labels: ['硬度', '强度', '工作能力', 'YP经验', '吃鸡经历', '持久度'],
+                datasets: [{
+                    label: '能力评估',
+                    data: [90, 70, 70, 100, 80, 20],
+                    backgroundColor: 'rgba(75, 108, 183, 0.2)',
+                    borderColor: 'rgba(75, 108, 183, 1)',
+                    pointBackgroundColor: [
+                        'rgba(75, 108, 183, 1)',
+                        'rgba(255, 107, 107, 1)',
+                        'rgba(107, 207, 127, 1)',
+                        'rgba(255, 167, 38, 1)',
+                        'rgba(171, 71, 188, 1)',
+                        'rgba(38, 198, 218, 1)'
+                    ],
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(75, 108, 183, 1)',
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    borderWidth: 2,
+                    fill: true
+                }]
+            };
+            
+            // 雷达图配置
+            const config = {
+                type: 'radar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.1)',
+                                lineWidth: 1
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)',
+                                circular: true
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                color: '#333'
+                            },
+                            ticks: {
+                                display: false,
+                                stepSize: 20
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(75, 108, 183, 1)',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ${context.raw}/100`;
+                                }
+                            }
+                        }
+                    },
+                    elements: {
+                        line: {
+                            tension: 0.2
+                        }
+                    }
+                }
+            };
+            
+            // 创建雷达图
+            radarChartInstance = new Chart(ctx, config);
+            
+            // 添加动画效果
+            animateRadarChart();
+        }
+        
+        // 初始化雷达图交互功能
+        function initRadarInteractivity() {
+            const attributeItems = document.querySelectorAll('.radar-info li');
+            const attributeDetails = document.querySelectorAll('.attribute-details');
+            
+            // 属性项点击事件
+            attributeItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const attribute = this.getAttribute('data-attribute');
+                    
+                    // 更新活动状态
+                    attributeItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 显示对应的详细信息
+                    attributeDetails.forEach(detail => {
+                        detail.classList.remove('active');
+                        if (detail.id === `${attribute}-details`) {
+                            detail.classList.add('active');
+                        }
+                    });
+                    
+                    // 高亮对应的雷达图区域
+                    highlightRadarAttribute(attribute);
+                });
+            });
+            
+            // 雷达图控制按钮
+            document.getElementById('radar-animate').addEventListener('click', function() {
+                animateRadarChart();
+            });
+            
+            document.getElementById('radar-compare').addEventListener('click', function() {
+                toggleComparisonMode();
+            });
+            
+            document.getElementById('radar-reset').addEventListener('click', function() {
+                resetRadarChart();
+            });
+        }
+        
+        // 高亮雷达图属性
+        function highlightRadarAttribute(attribute) {
+            if (!radarChartInstance) return;
+            
+            // 获取属性索引
+            const attributeIndex = {
+                'hardness': 0,
+                'strength': 1,
+                'work-ability': 2,
+                'yp-experience': 3,
+                'chicken-experience': 4,
+                'endurance': 5
+            }[attribute];
+            
+            // 高亮对应的数据点
+            radarChartInstance.setDatasetVisibility(0, false);
+            radarChartInstance.update();
+            
+            setTimeout(() => {
+                radarChartInstance.setDatasetVisibility(0, true);
+                radarChartInstance.update();
+            }, 300);
+        }
+        
+        // 动画效果
+        function animateRadarChart() {
+            if (!radarChartInstance) return;
+            
+            // 重置雷达图动画
+            radarChartInstance.data.datasets[0].data = [0, 0, 0, 0, 0, 0];
+            radarChartInstance.update();
+            
+            // 逐步显示数据
+            const finalData = [90, 70, 70, 100, 80, 20];
+            let currentData = [0, 0, 0, 0, 0, 0];
+            const steps = 20;
+            const stepDuration = 50;
+            
+            for (let step = 0; step <= steps; step++) {
+                setTimeout(() => {
+                    for (let i = 0; i < currentData.length; i++) {
+                        currentData[i] = Math.min(finalData[i], (finalData[i] / steps) * step);
+                    }
+                    
+                    radarChartInstance.data.datasets[0].data = currentData;
+                    radarChartInstance.update();
+                }, step * stepDuration);
+            }
+            
+            // 条形图动画
+            const bars = document.querySelectorAll('.comparison-fill');
+            bars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            });
+        }
+        
+        // 切换对比模式
+        function toggleComparisonMode() {
+            if (!radarChartInstance) return;
+            
+            // 添加对比数据集
+            if (radarChartInstance.data.datasets.length === 1) {
+                // 添加对比数据（行业平均水平）
+                const comparisonData = {
+                    label: '行业平均',
+                    data: [70, 60, 65, 50, 60, 50],
+                    backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                    borderColor: 'rgba(255, 107, 107, 1)',
+                    pointBackgroundColor: 'rgba(255, 107, 107, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(255, 107, 107, 1)',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    borderWidth: 1,
+                    borderDash: [5, 5],
+                    fill: true
+                };
+                
+                radarChartInstance.data.datasets.push(comparisonData);
+                document.getElementById('radar-compare').textContent = '关闭对比';
+            } else {
+                // 移除对比数据
+                radarChartInstance.data.datasets.pop();
+                document.getElementById('radar-compare').textContent = '对比模式';
+            }
+            
+            radarChartInstance.update();
+        }
+        
+        // 重置雷达图
+        function resetRadarChart() {
+            initRadarChart();
+        }
+        
+        // 表单提交处理
+        document.getElementById('contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('感谢您的留言！我会尽快回复您。');
+            this.reset();
+        });
+        
+        // 添加输入框交互效果
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.style.borderColor = '#4b6cb7';
+                this.style.boxShadow = '0 0 0 3px rgba(75, 108, 183, 0.1)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.style.borderColor = '#ddd';
+                this.style.boxShadow = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
